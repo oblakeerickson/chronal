@@ -1,61 +1,36 @@
 #!/usr/bin/env ruby
 
-require 'time'
+require_relative '../lib/chronal'
 
-FILENAME = '/tmp/chronal'
-
-def calculate
-  start = Time.parse(File.read(FILENAME))
-  total = Time.now - start
-end
-
-def format(t)
-  Time.at(t).utc.strftime("%H:%M:%S")
-end
-
-def minutes(t)
-  "#{(t / 60).round}m"
-end
+@chronal = Chronal::Chronal.new
 
 command = ARGV[0]
 
 if command == nil
-  puts "Please provide a command like 'start', 'stop', or 'current'"
+  puts "Please provide a command like 'start', 'stop', 'current', or 'live'"
 end
 
 case command
 when "start"
-  begin
-    contents = File.read(FILENAME)
-  rescue Errno::ENOENT => e
-    contents = ''
-  end
-  if contents.length > 0
-    puts "Please 'stop' the timer before starting a new one"
-    puts minutes(calculate)
-  else
-    File.write(FILENAME, Time.now)
-    puts "Started!"
-  end
+  puts @chronal.start
 when "stop"
-  contents = File.read(FILENAME)
-  if contents.length > 0
-    puts minutes(calculate)
-    File.write(FILENAME, '')
+  contents = @chronal.stop
+  if contents
+    puts contents
   else
     puts "The stopwatch isn't running"
   end
 when "current"
-  contents = File.read(FILENAME)
-  if contents.length > 0
-    puts minutes(calculate)
+  contents = @chronal.current
+  if contents
+    puts contents
   else
     puts "The stopwatch isn't running"
   end
 when "live"
   begin
     loop do
-      time = format(calculate)
+      time = @chronal.live
       print "\r" + time
       $stdout.flush
     end
